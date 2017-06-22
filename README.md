@@ -1,4 +1,4 @@
-# Embedded Consul
+# Embedded Vault
 
 Embedded Vault provides a platform neutral way for running [Vault](https://www.vaultproject.io) in tests.
 This library is based on [Flapdoodle OSS's embed process](https://github.com/flapdoodle-oss/de.flapdoodle.embed.process). 
