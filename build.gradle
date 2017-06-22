@@ -1,0 +1,124 @@
+plugins {
+    id 'com.jfrog.bintray' version '1.7.3'
+}
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+apply plugin: 'java-library-distribution'
+
+ext {
+    productVersion    = '0.7.3.0'
+    product           = 'embedded-vault'
+    javaTarget        = JavaVersion.VERSION_1_8
+    libraries         = [
+        flapdoodleProcess:  'de.flapdoodle.embed:de.flapdoodle.embed.process:2.0.1',
+        junit:              'junit:junit:4.12'
+    ]
+}
+
+idea {
+    project {
+        jdkName = javaTarget
+        languageLevel = javaTarget
+        vcs = 'Git'
+    }
+    module {
+        name = product
+    }
+}
+
+version = productVersion
+sourceCompatibility = javaTarget
+targetCompatibility = javaTarget
+
+// Change the output directory for the main source set back to the old path.
+// Remove it when IDEA and Eclipse support new layout.
+sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
+sourceSets.test.output.classesDir = new File(buildDir, "classes/test")
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(libraries.flapdoodleProcess)
+    testCompile(libraries.junit)
+}
+
+task sourcesJar(type: Jar, dependsOn: compileJava) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+def pomConfig = {
+    licenses {
+        license {
+            name 'BSD 3-Clause'
+            url 'http://www.opensource.org/licenses/bsd-license.php'
+            distribution 'repo'
+        }
+    }
+    developers {
+        developer {
+            id 'golovnin'
+            name 'Andrej Golovnin'
+            email 'andrej.golovnin@gmail.com'
+        }
+    }
+    scm {
+        url 'https://github.com/golovnin/embedded-vault'
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'com.github.golovnin'
+            artifactId product
+            version productVersion
+
+            from components.java
+            artifact sourcesJar {
+                classifier 'sources'
+            }
+            artifact javadocJar {
+                classifier 'javadoc'
+            }
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Embedded Vault based on https://github.com/flapdoodle-oss/de.flapdoodle.embed.process')
+                root.appendNode('name', 'Embedded Vault')
+                root.appendNode('url', 'https://github.com/golovnin/embedded-vault')
+                root.children().last() + pomConfig
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['mavenJava']
+    pkg {
+        repo = 'maven'
+        name = product
+        userOrg = System.getenv('BINTRAY_USER')
+        licenses = ['BSD 3-Clause']
+        vcsUrl = 'https://github.com/golovnin/embedded-vault'
+        labels = ['embedded', 'vault']
+        version {
+            name = productVersion
+            vcsTag = productVersion
+            released = new java.util.Date()
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0'
+}
