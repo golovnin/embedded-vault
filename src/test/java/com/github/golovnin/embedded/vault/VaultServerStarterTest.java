@@ -30,10 +30,14 @@
 
 package com.github.golovnin.embedded.vault;
 
-import java.io.IOException;
-
 import de.flapdoodle.embed.process.distribution.IVersion;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
@@ -41,11 +45,21 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Andrej Golovnin
  */
+@RunWith(Parameterized.class)
 public class VaultServerStarterTest {
+
+    @Parameterized.Parameters
+    public static List<VaultLogLevel> logLevels() {
+        return Arrays.asList(VaultLogLevel.values());
+    }
+
+    @Parameterized.Parameter
+    public VaultLogLevel logLevel;
 
     @Test
     public void testDefault() throws IOException {
         VaultServerConfig config = new VaultServerConfig.Builder()
+            .logLevel(logLevel)
             .build();
         VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
         VaultServerExecutable executable = starter.prepare(config);
@@ -62,6 +76,7 @@ public class VaultServerStarterTest {
     public void testDefaultWithRandomPort() throws IOException {
         VaultServerConfig config = new VaultServerConfig.Builder()
             .randomPort()
+            .logLevel(logLevel)
             .build();
         assertNotEquals(8200, config.getListenerPort());
         VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
@@ -80,6 +95,7 @@ public class VaultServerStarterTest {
         IVersion v0_7_2 = () -> "0.7.2";
         VaultServerConfig config = new VaultServerConfig.Builder()
             .version(v0_7_2)
+            .logLevel(logLevel)
             .build();
         VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
         VaultServerExecutable executable = starter.prepare(config);

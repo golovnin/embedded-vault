@@ -30,18 +30,18 @@
 
 package com.github.golovnin.embedded.vault;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.InetAddress;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import de.flapdoodle.embed.process.builder.AbstractBuilder;
 import de.flapdoodle.embed.process.builder.TypedProperty;
 import de.flapdoodle.embed.process.config.IExecutableProcessConfig;
 import de.flapdoodle.embed.process.config.ISupportConfig;
 import de.flapdoodle.embed.process.distribution.IVersion;
 import de.flapdoodle.embed.process.runtime.Network;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Andrej Golovnin
@@ -106,7 +106,7 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
             TypedProperty.with("max-lease-ttl", String.class);
 
         public Builder() {
-            property(VERSION).setDefault(VaultVersion.V0_7_3);
+            property(VERSION).setDefault(VaultVersion.V0_9_0);
             property(STARTUP_TIMEOUT).setDefault(60000L);
             property(LISTENER_HOST).setDefault(DEFAULT_ADDRESS);
             property(LISTENER_PORT).setDefault(8200);

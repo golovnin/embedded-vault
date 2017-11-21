@@ -7,7 +7,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'java-library-distribution'
 
 ext {
-    productVersion    = '0.7.3.0'
+    productVersion    = '0.9.0.0'
     product           = 'embedded-vault'
     javaTarget        = JavaVersion.VERSION_1_8
     libraries         = [

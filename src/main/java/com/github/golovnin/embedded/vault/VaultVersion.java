@@ -37,7 +37,13 @@ import de.flapdoodle.embed.process.distribution.IVersion;
  */
 public enum VaultVersion implements IVersion {
 
-    V0_7_3("0.7.3");
+    @Deprecated
+    V0_7_3("0.7.3"),
+
+    @Deprecated
+    V0_8_0("0.8.0"),
+
+    V0_9_0("0.9.0");
 
     private final String version;
 
