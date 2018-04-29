@@ -1,5 +1,5 @@
 plugins {
-    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.jfrog.bintray' version '1.8.0'
 }
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -120,5 +120,5 @@ bintray {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.7'
 }
