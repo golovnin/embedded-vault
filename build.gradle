@@ -1,5 +1,5 @@
 plugins {
-    id 'com.jfrog.bintray' version '1.7.3'
+    id 'com.jfrog.bintray' version '1.8.0'
 }
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -7,7 +7,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'java-library-distribution'
 
 ext {
-    productVersion    = '0.10.0.0'
+    productVersion    = '0.10.1.0'
     product           = 'embedded-vault'
     javaTarget        = JavaVersion.VERSION_1_8
     libraries         = [
@@ -120,5 +120,5 @@ bintray {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.7'
 }
