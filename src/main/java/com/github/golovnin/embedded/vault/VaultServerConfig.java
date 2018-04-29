@@ -106,7 +106,7 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
             TypedProperty.with("max-lease-ttl", String.class);
 
         public Builder() {
-            property(VERSION).setDefault(VaultVersion.V0_9_0);
+            property(VERSION).setDefault(VaultVersion.V0_10_1);
             property(STARTUP_TIMEOUT).setDefault(60000L);
             property(LISTENER_HOST).setDefault(DEFAULT_ADDRESS);
             property(LISTENER_PORT).setDefault(8200);
