@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.config.io.ProcessOutput;
@@ -63,9 +64,12 @@ public final class VaultServerProcess
     private static final Set<String> KNOWN_FAILURE_MESSAGES =
         Collections.singleton("Error ");
 
+    private static final String UNSEAL_KEY = "Unseal Key:";
 
     private File configFile;
-
+    private Consumer<String> outConsumer;
+    private Consumer<String> errConsumer;
+    private String unsealKey;
 
     VaultServerProcess(Distribution distribution, VaultServerConfig config,
         IRuntimeConfig runtimeConfig, VaultServerExecutable executable)
@@ -85,6 +89,11 @@ public final class VaultServerProcess
         ) {
             writer.write(config.toJson());
         }
+
+        Consumer<String> unsealKeyConsumer = this::extractUnsealKey;
+        this.outConsumer = unsealKeyConsumer.andThen(config.getOutConsumer());
+        this.errConsumer = config.getErrConsumer();
+
         String listenerHost = config.getListenerHost();
         String listenerPort = String.valueOf(config.getListenerPort());
         String rootTokenID = config.getRootTokenID();
@@ -107,9 +116,16 @@ public final class VaultServerProcess
         LogWatchStreamProcessor logWatch = new LogWatchStreamProcessor(
             SUCCESS_MESSAGE, KNOWN_FAILURE_MESSAGES,
             StreamToLineProcessor.wrap(outputConfig.getOutput()));
-        Processors.connect(process.getReader(), logWatch);
-        Processors.connect(process.getError(),
-            StreamToLineProcessor.wrap(outputConfig.getError()));
+
+        Processors.connect(
+            process.getReader(),
+            new VaultOutputProcessor(logWatch, outConsumer));
+        Processors.connect(
+            process.getError(),
+            new VaultOutputProcessor(
+                StreamToLineProcessor.wrap(outputConfig.getError()),
+                errConsumer));
+
         logWatch.waitForResult(getConfig().getStartupTimeout());
         if (logWatch.isInitWithSuccess()) {
             setProcessId(getProcessId());
@@ -141,6 +157,17 @@ public final class VaultServerProcess
     @Override
     protected void cleanupInternal() {
         Files.forceDelete(configFile);
+    }
+
+    public String getUnsealKey() {
+        return unsealKey;
+    }
+
+    private void extractUnsealKey(String block) {
+        int i = block.indexOf(UNSEAL_KEY);
+        if (i >= 0) {
+            unsealKey = block.substring(i + UNSEAL_KEY.length()).trim();
+        }
     }
 
 }

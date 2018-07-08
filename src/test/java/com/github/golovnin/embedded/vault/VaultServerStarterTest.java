@@ -30,17 +30,16 @@
 
 package com.github.golovnin.embedded.vault;
 
-import de.flapdoodle.embed.process.distribution.IVersion;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Andrej Golovnin
@@ -73,6 +72,63 @@ public class VaultServerStarterTest {
     }
 
     @Test
+    public void testUnsealKey() throws IOException {
+        VaultServerConfig config = new VaultServerConfig.Builder()
+            .logLevel(logLevel)
+            .build();
+        VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
+        VaultServerExecutable executable = starter.prepare(config);
+        try {
+            VaultServerProcess process = executable.start();
+            assertTrue(process.isProcessRunning());
+            assertNotNull(process.getUnsealKey());
+            process.stop();
+        } finally {
+            executable.stop();
+        }
+    }
+
+    @Test
+    public void testOutputConsumer() throws IOException {
+        AtomicBoolean b = new AtomicBoolean();
+        VaultServerConfig config = new VaultServerConfig.Builder()
+            .logLevel(logLevel)
+            .outConsumer(s -> b.set(true))
+            .build();
+        VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
+        VaultServerExecutable executable = starter.prepare(config);
+        try {
+            VaultServerProcess process = executable.start();
+            assertTrue(process.isProcessRunning());
+            process.stop();
+        } finally {
+            executable.stop();
+        }
+        assertTrue(b.get());
+    }
+
+    @Test
+    public void testErrorConsumer() throws IOException {
+        AtomicBoolean b = new AtomicBoolean();
+        VaultServerConfig config = new VaultServerConfig.Builder()
+            .logLevel(logLevel)
+            .errConsumer(s -> b.set(true))
+            .build();
+        VaultServerStarter starter = VaultServerStarter.getDefaultInstance();
+        VaultServerExecutable executable = starter.prepare(config);
+        try {
+            VaultServerProcess process = executable.start();
+            assertTrue(process.isProcessRunning());
+            process.stop();
+        } finally {
+            executable.stop();
+        }
+        if (logLevel.compareTo(VaultLogLevel.WARN) < 0) {
+            assertTrue(b.get());
+        }
+    }
+
+    @Test
     public void testDefaultWithRandomPort() throws IOException {
         VaultServerConfig config = new VaultServerConfig.Builder()
             .randomPort()
@@ -92,9 +148,8 @@ public class VaultServerStarterTest {
 
     @Test
     public void testCustomVersion() throws IOException {
-        IVersion v0_7_2 = () -> "0.7.2";
         VaultServerConfig config = new VaultServerConfig.Builder()
-            .version(v0_7_2)
+            .version("0.7.2")
             .logLevel(logLevel)
             .build();
         VaultServerStarter starter = VaultServerStarter.getDefaultInstance();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Andrej Golovnin
+ * Copyright (c) 2018, Andrej Golovnin
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,34 @@
 
 package com.github.golovnin.embedded.vault;
 
-import de.flapdoodle.embed.process.distribution.IVersion;
+import java.util.function.Consumer;
+
+import de.flapdoodle.embed.process.io.IStreamProcessor;
+
+import static java.util.Objects.requireNonNull;
 
 /**
- * @author Andrej Golovnin
+ * @author <a href="mailto:andrej.golovnin@gmail.com">Andrej Golovnin</a>
  */
-public enum VaultVersion implements IVersion {
+final class VaultOutputProcessor implements IStreamProcessor {
 
-    @Deprecated
-    V0_7_3("0.7.3"),
+    private final IStreamProcessor delegate;
+    private final Consumer<String> outputProcessor;
 
-    @Deprecated
-    V0_8_0("0.8.0"),
-
-    @Deprecated
-    V0_9_0("0.9.0"),
-
-    @Deprecated
-    V0_10_0("0.10.0"),
-
-    @Deprecated
-    V0_10_1("0.10.1"),
-
-    @Deprecated
-    V0_10_2("0.10.2"),
-
-    V0_10_3("0.10.3");
-
-    private final String version;
-
-    VaultVersion(String version) {
-        this.version = version;
+    VaultOutputProcessor(IStreamProcessor delegate, Consumer<String> outputProcessor) {
+        this.delegate = requireNonNull(delegate, "delegate may not be null");
+        this.outputProcessor = requireNonNull(outputProcessor, "outputProcessor may not be null");
     }
 
     @Override
-    public String asInDownloadPath() {
-        return version;
+    public void process(String block) {
+        outputProcessor.accept(block);
+        delegate.process(block);
+    }
+
+    @Override
+    public void onProcessed() {
+        delegate.onProcessed();
     }
 
 }

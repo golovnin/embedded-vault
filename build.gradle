@@ -7,11 +7,11 @@ apply plugin: 'maven-publish'
 apply plugin: 'java-library-distribution'
 
 ext {
-    productVersion    = '0.10.1.0'
+    productVersion    = '0.10.3.0'
     product           = 'embedded-vault'
     javaTarget        = JavaVersion.VERSION_1_8
     libraries         = [
-        flapdoodleProcess:  'de.flapdoodle.embed:de.flapdoodle.embed.process:2.0.1',
+        flapdoodleProcess:  'de.flapdoodle.embed:de.flapdoodle.embed.process:2.0.5',
         junit:              'junit:junit:4.12'
     ]
 }
@@ -120,5 +120,5 @@ bintray {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+    gradleVersion = '4.8.1'
 }

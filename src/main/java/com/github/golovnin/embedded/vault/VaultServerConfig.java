@@ -30,6 +30,13 @@
 
 package com.github.golovnin.embedded.vault;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
 import de.flapdoodle.embed.process.builder.AbstractBuilder;
 import de.flapdoodle.embed.process.builder.TypedProperty;
 import de.flapdoodle.embed.process.config.IExecutableProcessConfig;
@@ -37,11 +44,7 @@ import de.flapdoodle.embed.process.config.ISupportConfig;
 import de.flapdoodle.embed.process.distribution.IVersion;
 import de.flapdoodle.embed.process.runtime.Network;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.InetAddress;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import static java.util.Objects.requireNonNull;
 
 /**
  * @author Andrej Golovnin
@@ -57,11 +60,14 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
     private final String clusterName;
     private final String defaultLeaseTTL;
     private final String maxLeaseTTL;
+    private final Consumer<String> outConsumer;
+    private final Consumer<String> errConsumer;
 
     VaultServerConfig(IVersion version, long startupTimeout,
         String listenerHost, int listenerPort, String rootTokenID,
         VaultLogLevel logLevel, String clusterName, String defaultLeaseTTL,
-        String maxLeaseTTL)
+        String maxLeaseTTL, Consumer<String> outConsumer,
+        Consumer<String> errConsumer)
     {
         this.version = version;
         this.startupTimeout = startupTimeout;
@@ -72,11 +78,15 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
         this.clusterName = clusterName;
         this.defaultLeaseTTL = defaultLeaseTTL;
         this.maxLeaseTTL = maxLeaseTTL;
+        this.outConsumer = outConsumer;
+        this.errConsumer = errConsumer;
     }
 
     public static final class Builder extends AbstractBuilder<VaultServerConfig> {
 
         private static final String DEFAULT_ADDRESS = "127.0.0.1";
+
+        private static final Consumer<String> NOP_CONSUMER = s -> {};
 
         private static final TypedProperty<IVersion> VERSION =
             TypedProperty.with("version", IVersion.class);
@@ -105,8 +115,14 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
         private static final TypedProperty<String> MAX_LEASE_TTL =
             TypedProperty.with("max-lease-ttl", String.class);
 
+        private static final TypedProperty<Consumer> OUT_CONSUMER =
+            TypedProperty.with("out-consumer", Consumer.class);
+
+        private static final TypedProperty<Consumer> ERR_CONSUMER =
+            TypedProperty.with("err-consumer", Consumer.class);
+
         public Builder() {
-            property(VERSION).setDefault(VaultVersion.V0_10_1);
+            property(VERSION).setDefault(VaultVersion.V0_10_3);
             property(STARTUP_TIMEOUT).setDefault(60000L);
             property(LISTENER_HOST).setDefault(DEFAULT_ADDRESS);
             property(LISTENER_PORT).setDefault(8200);
@@ -115,11 +131,17 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
             property(CLUSTER_NAME).setDefault("dev");
             property(DEFAULT_LEASE_TTL).setDefault("768h");
             property(MAX_LEASE_TTL).setDefault("768h");
+            property(OUT_CONSUMER).setDefault(NOP_CONSUMER);
+            property(ERR_CONSUMER).setDefault(NOP_CONSUMER);
         }
 
         public Builder version(IVersion version) {
             property(VERSION).set(version);
             return this;
+        }
+
+        public Builder version(String version) {
+            return version(() -> version);
         }
 
         public Builder startupTimeout(long startupTimeout, TimeUnit unit) {
@@ -178,6 +200,17 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
             return this;
         }
 
+        public Builder outConsumer(Consumer<String> consumer) {
+            property(OUT_CONSUMER).set(requireNonNull(consumer));
+            return this;
+        }
+
+        public Builder errConsumer(Consumer<String> consumer) {
+            property(ERR_CONSUMER).set(requireNonNull(consumer));
+            return this;
+        }
+
+        @SuppressWarnings("unchecked")
         @Override
         public VaultServerConfig build() {
             return new VaultServerConfig(
@@ -189,7 +222,9 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
                 property(LOG_LEVEL).get(),
                 property(CLUSTER_NAME).get(),
                 property(DEFAULT_LEASE_TTL).get(),
-                property(MAX_LEASE_TTL).get());
+                property(MAX_LEASE_TTL).get(),
+                (Consumer<String>) property(OUT_CONSUMER).get(),
+                (Consumer<String>) property(ERR_CONSUMER).get());
         }
 
     }
@@ -226,6 +261,14 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
         return maxLeaseTTL;
     }
 
+    public Consumer<String> getOutConsumer() {
+        return outConsumer;
+    }
+
+    public Consumer<String> getErrConsumer() {
+        return errConsumer;
+    }
+
     @Override
     public IVersion version() {
         return version;
@@ -237,13 +280,11 @@ public final class VaultServerConfig implements IExecutableProcessConfig {
     }
 
     String toJson() {
-        return new StringBuilder()
-            .append("{\n")
-            .append("\t\"cluster_name\": \"").append(clusterName).append("\",\n")
-            .append("\t\"default_lease_ttl\": \"").append(defaultLeaseTTL).append("\",\n")
-            .append("\t\"max_lease_ttl\": \"").append(maxLeaseTTL).append("\"\n")
-            .append("}\n")
-            .toString();
+        return "{\n" +
+                "\t\"cluster_name\": \"" + clusterName + "\",\n" +
+                "\t\"default_lease_ttl\": \"" + defaultLeaseTTL + "\",\n" +
+                "\t\"max_lease_ttl\": \"" + maxLeaseTTL + "\"\n" +
+                "}\n";
     }
 
 }
