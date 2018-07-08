@@ -45,7 +45,7 @@ import de.flapdoodle.embed.process.store.ExtractedArtifactStoreBuilder;
 /**
  * @author Andrej Golovnin
  */
-final class VaultBuilders {
+final public class VaultBuilders {
 
     private VaultBuilders() {
         // NOP
@@ -63,10 +63,14 @@ final class VaultBuilders {
     }
 
     static RuntimeConfigBuilder runtimeConfigBuilder() {
+        return runtimeConfigBuilder(ProcessOutput.getDefaultInstance("default"), new ICommandLinePostProcessor.Noop());
+    }
+
+    public static RuntimeConfigBuilder runtimeConfigBuilder(ProcessOutput processOutput, ICommandLinePostProcessor commandLinePostProcessor) {
         return new RuntimeConfigBuilder()
-            .processOutput(ProcessOutput.getDefaultInstance("vault"))
-            .commandLinePostProcessor(new ICommandLinePostProcessor.Noop())
-            .artifactStore(storeBuilder().build());
+                .processOutput(processOutput)
+                .commandLinePostProcessor(commandLinePostProcessor)
+                .artifactStore(storeBuilder().build());
     }
 
     private static ExtractedArtifactStoreBuilder storeBuilder() {
