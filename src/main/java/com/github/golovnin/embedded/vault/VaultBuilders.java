@@ -51,7 +51,7 @@ final class VaultBuilders {
         // NOP
     }
 
-    static DownloadConfigBuilder downloadConfigBuilder() {
+    private static DownloadConfigBuilder downloadConfigBuilder() {
         return new DownloadConfigBuilder()
             .fileNaming(new UUIDTempNaming())
             .downloadPath("https://releases.hashicorp.com/vault/")
@@ -69,7 +69,7 @@ final class VaultBuilders {
             .artifactStore(storeBuilder().build());
     }
 
-    static ExtractedArtifactStoreBuilder storeBuilder() {
+    private static ExtractedArtifactStoreBuilder storeBuilder() {
         return new ExtractedArtifactStoreBuilder()
             .extractDir(new UserHome(".embedded-vault/extracted"))
             .extractExecutableNaming(new OriginNaming())
