@@ -1,5 +1,6 @@
 plugins {
     id 'com.jfrog.bintray' version '1.8.4'
+    id 'com.github.ben-manes.versions' version '0.20.0'
 }
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -7,7 +8,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'java-library-distribution'
 
 ext {
-    productVersion    = '0.10.3.0'
+    productVersion    = '0.11.1.0'
     product           = 'embedded-vault'
     javaTarget        = JavaVersion.VERSION_1_8
     libraries         = [
@@ -30,11 +31,6 @@ idea {
 version = productVersion
 sourceCompatibility = javaTarget
 targetCompatibility = javaTarget
-
-// Change the output directory for the main source set back to the old path.
-// Remove it when IDEA and Eclipse support new layout.
-sourceSets.main.output.classesDir = new File(buildDir, "classes/main")
-sourceSets.test.output.classesDir = new File(buildDir, "classes/test")
 
 repositories {
     mavenCentral()
@@ -120,5 +116,5 @@ bintray {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.8.1'
+    gradleVersion = '4.10.2'
 }

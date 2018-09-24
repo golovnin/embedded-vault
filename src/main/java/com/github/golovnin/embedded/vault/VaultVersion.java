@@ -55,7 +55,16 @@ public enum VaultVersion implements IVersion {
     @Deprecated
     V0_10_2("0.10.2"),
 
-    V0_10_3("0.10.3");
+    @Deprecated
+    V0_10_3("0.10.3"),
+
+    @Deprecated
+    V0_10_4("0.10.4"),
+
+    @Deprecated
+    V0_11_0("0.11.0"),
+
+    V0_11_1("0.11.1");
 
     private final String version;
 
