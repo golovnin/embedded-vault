@@ -66,6 +66,7 @@ public final class VaultServerProcess
 
     private static final String UNSEAL_KEY = "Unseal Key:";
 
+    private boolean stopped;
     private File configFile;
     private Consumer<String> outConsumer;
     private Consumer<String> errConsumer;
@@ -151,7 +152,15 @@ public final class VaultServerProcess
 
     @Override
     protected void stopInternal() {
-        sendKillToProcess();
+        synchronized (this) {
+            if (!stopped) {
+                stopped = true;
+                if (!sendKillToProcess()) {
+                    tryKillToProcess();
+                }
+                stopProcess();
+            }
+        }
     }
 
     @Override
