@@ -14,7 +14,7 @@ repositories {
 ```
 Add a Gradle compile dependency to the `build.gradle` file of your project:
 ```groovy
-testCompile 'com.github.golovnin:embedded-vault:0.10.3.0'
+testCompile 'com.github.golovnin:embedded-vault:0.11.1.0'
 ```
 
 ### Usage
@@ -49,7 +49,7 @@ process.stop();
 
 ### Supported Vault versions and platforms
 
-Versions: 0.10.3 and any custom
+Versions: 0.11.1 and any custom
 
 Platforms: Mac OS X, FreeBSD, Linux, Solaris and Windows
 
